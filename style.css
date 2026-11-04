@@ -1,8 +1,13 @@
 /* Intro animation on page load: adjust these */
 :root {
-  --fade-duration: 1.25s; /* how long the animation takes */
+  --fade-duration: 0.95s; /* how long the animation takes */
   --fade-delay: 0s; /* wait before it starts */
-  --fade-easing: ease-in-out; /* fade: slow start, faster middle, soft finish */
+  --fade-easing: cubic-bezier(
+    0.22,
+    1,
+    0.36,
+    1
+  ); /* fade: slow start, faster middle, soft finish */
   --move-easing: cubic-bezier(
     0.45,
     0,
@@ -15,13 +20,13 @@
 /* Hover bounce: adjust these */
 :root {
   --hover-scale: 1.15; /* how big an icon gets on hover */
-  --bounce-duration: 0.5s; /* how long the bounce takes */
+  --bounce-duration: 0.22s; /* how long the bounce takes */
   --bounce-easing: cubic-bezier(
-    0.34,
-    1.56,
-    0.64,
+    0.2,
+    0.8,
+    0.2,
     1
-  ); /* overshoots, so it bounces both in and out */
+  ); /* smooth, no overshoot or snap */
 }
 
 /* Hover letters: adjust these */
@@ -49,14 +54,20 @@ html.js .icons {
 /* Title: comes down from the top */
 @keyframes slide-from-top {
   from {
-    transform: translateY(calc(var(--slide-distance) * -1));
+    transform: translate3d(0, calc(var(--slide-distance) * -1), 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
   }
 }
 
 /* Icons: come up from the bottom */
 @keyframes slide-from-bottom {
   from {
-    transform: translateY(var(--slide-distance));
+    transform: translate3d(0, var(--slide-distance), 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -74,14 +85,14 @@ h1 {
   animation:
     fade-in var(--fade-duration) var(--fade-easing) var(--fade-delay) both,
     slide-from-top var(--fade-duration) var(--move-easing) var(--fade-delay)
-      backwards;
+      both;
 }
 
 .icons {
   animation:
     fade-in var(--fade-duration) var(--fade-easing) var(--fade-delay) both,
     slide-from-bottom var(--fade-duration) var(--move-easing) var(--fade-delay)
-      backwards;
+      both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -148,15 +159,19 @@ h1 {
 .icon-element::after {
   content: "";
   position: absolute;
-  /* The icon is drawn at its biggest (hover) size and shrunk at rest, so it is
-       always rendered sharp and never re-drawn at in-between sizes while bouncing. */
-  inset: calc((1 - var(--hover-scale)) * 50%);
+  inset: 0;
+  /*
+   * Keep the SVG drawing box fixed and scale it uniformly from its center.
+   * The previous negative inset enlarged the pseudo-element as well as scaling
+   * it, which can make the background look like it resizes unevenly on phones.
+   */
   transform: scale(calc(1 / var(--hover-scale)));
-  will-change: transform;
+  transform-origin: center;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   transition: transform var(--bounce-duration) var(--bounce-easing);
+  will-change: transform;
 }
 
 /* Bounce in on hover, bounce back out when the mouse leaves */
@@ -251,7 +266,7 @@ html.intro-done .icon-element:focus-visible::after {
 h1 span {
   display: inline-block;
   /* dropping back down: speeds up like gravity, tiny bounce on landing */
-  transition: transform var(--letter-fall) cubic-bezier(0.55, 0.05, 0.65, 1.45);
+  transition: transform var(--letter-fall) cubic-bezier(0.22, 0.7, 0.25, 1);
 }
 
 @media (hover: hover) {
@@ -271,5 +286,52 @@ html.intro-done h1 span.lift {
 @media (prefers-reduced-motion: reduce) {
   h1 span {
     transition: none;
+  }
+}
+
+/* Phones: keep the title and all six icons comfortably inside the viewport. */
+@media (max-width: 600px) {
+  body {
+    padding: 20px 16px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 9vw, 3.25rem);
+    line-height: 1.08;
+    margin-bottom: clamp(18px, 5vw, 28px);
+  }
+
+  .icons {
+    width: 100%;
+    justify-content: center;
+    gap: clamp(12px, 3vw, 20px);
+  }
+
+  .icon-element {
+    flex: 0 0 auto;
+    width: clamp(30px, 8vw, 44px);
+    height: clamp(30px, 8vw, 44px);
+  }
+}
+
+/* Landscape phones have plenty of width but limited height. */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  body {
+    padding: 12px 16px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 7vw, 3.5rem);
+    line-height: 1.05;
+    margin-bottom: clamp(12px, 3vh, 22px);
+  }
+
+  .icons {
+    gap: clamp(12px, 2.5vw, 24px);
+  }
+
+  .icon-element {
+    width: clamp(28px, 6vh, 42px);
+    height: clamp(28px, 6vh, 42px);
   }
 }
