@@ -1,20 +1,64 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MindSniping</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>MindSniping</h1>
 
-<h1>MindSniping</h1>
+    <div class="icons">
+      <a
+        class="icon-element tiktok"
+        href="https://www.tiktok.com/@mindsniping"
+        target="_blank"
+        rel="noopener"
+        aria-label="MindSniping on TikTok"
+        ><span class="tooltip" role="tooltip">@mindsniping</span></a
+      >
+      <a
+        class="icon-element youtube"
+        href="https://www.youtube.com/@mind.sniping"
+        target="_blank"
+        rel="noopener"
+        aria-label="MindSniping on YouTube"
+        ><span class="tooltip" role="tooltip">@mind.sniping</span></a
+      >
+      <button
+        type="button"
+        class="icon-element discord"
+        aria-label="Discord: @mindsniping"
+      >
+        <span class="tooltip" role="tooltip"
+          >@mindsniping<br />Discord server coming soon</span
+        >
+      </button>
+      <a
+        class="icon-element gdbrowser"
+        href="https://gdbrowser.com/u/Mindsniping"
+        target="_blank"
+        rel="noopener"
+        aria-label="MindSniping on GDBrowser"
+        ><span class="tooltip" role="tooltip">MindSniping</span></a
+      >
+    </div>
 
-<div class="icons">
-<a class="icon-element tiktok" href="https://www.tiktok.com/@mindsniping" target="_blank" rel="noopener" aria-label="MindSniping on TikTok"></a>
-<a class="icon-element youtube" href="https://www.youtube.com/@mind.sniping" target="_blank" rel="noopener" aria-label="MindSniping on YouTube"></a>
-<a class="icon-element gdbrowser" href="https://gdbrowser.com/u/Mindsniping" target="_blank" rel="noopener" aria-label="MindSniping on GDBrowser"></a>
-</div>
-
-</body>
+    <script>
+      // Tap pop-ups only on touch devices; desktop uses hover only
+      if (window.matchMedia("(hover: none)").matches) {
+        document.querySelectorAll(".icon-element").forEach(function (icon) {
+          var timer;
+          icon.addEventListener("click", function () {
+            icon.classList.add("show");
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+              icon.classList.remove("show");
+            }, 2000);
+          });
+        });
+      }
+    </script>
+  </body>
 </html>
