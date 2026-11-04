@@ -36,5 +36,5 @@ body {
 
 /* Geometry Dash cube: frame, two eyes, mouth */
 .gdbrowser {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff' fill-rule='evenodd'%3E%3Cpath d='M1 1h22v22H1zM2.5 2.5v19h19v-19z'/%3E%3Cpath d='M6 6.5h5v5H6zM7 7.5v3h3v-3zM13 6.5h5v5h-5zM14 7.5v3h3v-3zM4.5 13.5h15v3h-15zM5.5 14.5v1h13v-1z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff' fill-rule='evenodd'%3E%3Cpath d='M1 1h22v22H1zM2.8 2.8v18.4h18.4V2.8z'/%3E%3Cpath d='M6 5h4.8v4.8H6zM7.3 6.3v2.2h2.2V6.3zM13.2 5h4.8v4.8h-4.8zM14.5 6.3v2.2h2.2V6.3zM4.6 11.7h14.8v4.5H4.6zM6 13.1v1.7h12v-1.7z'/%3E%3C/svg%3E");
 }
