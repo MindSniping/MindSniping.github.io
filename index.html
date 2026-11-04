@@ -76,6 +76,21 @@
   .tile .num { font-family: var(--display); font-size: 1.9rem; line-height: 1; color: var(--accent); }
   .tile .label { color: var(--muted); font-size: 0.95rem; }
 
+  h2 { font-family: var(--display); font-weight: 400; font-size: 1.6rem; margin: 40px 0 12px; }
+  .followers { margin-top: 16px; display: flex; align-items: baseline; gap: 12px; background: var(--tile); border: 2px solid var(--line); border-bottom: 5px solid #b58cff; border-radius: 6px; padding: 16px 18px; }
+  .followers .fnum { font-family: var(--display); font-size: 1.9rem; line-height: 1; color: #b58cff; }
+  .followers .label { color: var(--muted); }
+  #lookup { display: flex; gap: 10px; }
+  #lookup input { flex: 1; min-width: 0; font: inherit; font-size: 1rem; color: var(--text); background: rgba(0, 0, 0, 0.3); border: 2px solid var(--line); border-radius: 6px; padding: 12px 14px; }
+  #lookup input:focus-visible, #lookup button:focus-visible { outline: 3px solid var(--star); outline-offset: 2px; }
+  #lookup button { font-family: var(--display); font-size: 1.05rem; color: #2b2000; background: var(--star); border: 0; border-bottom: 4px solid #b58a00; border-radius: 6px; padding: 0 20px; cursor: pointer; }
+  #result { margin-top: 16px; color: var(--muted); }
+  .found { background: var(--tile); border: 2px solid var(--line); border-radius: 6px; padding: 16px 18px; color: var(--text); }
+  .found h3 { font-family: var(--display); font-weight: 400; font-size: 1.7rem; margin: 0 0 4px; }
+  .found .rank { color: var(--muted); margin: 0 0 12px; }
+  .found dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 0; }
+  .found dt { color: var(--muted); font-size: 0.9rem; }
+  .found dd { margin: 0; font-family: var(--display); font-size: 1.4rem; }
   .extra { margin-top: 28px; color: var(--muted); line-height: 1.6; }
   .extra strong { color: var(--text); }
   .updated { margin-top: 24px; font-size: 0.85rem; color: var(--muted); opacity: 0.8; }
@@ -96,6 +111,20 @@
 
   <section class="grid" id="grid" aria-label="Other stats"></section>
 
+  <section class="followers" aria-label="Followers">
+    <span class="fnum" id="fcount">0</span>
+    <span class="label" id="flabel">Followers</span>
+  </section>
+
+  <section aria-label="Player search">
+    <h2>Look up a player</h2>
+    <form id="lookup">
+      <input id="q" type="text" placeholder="Enter a username" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20" aria-label="Username">
+      <button type="submit">Search</button>
+    </form>
+    <div id="result" aria-live="polite"></div>
+  </section>
+
   <p class="extra" id="extra"></p>
   <p class="updated" id="updated"></p>
 </main>
@@ -108,6 +137,8 @@
     updated: "November 2026",
     hardestDemon: "Your hardest demon",
     favoriteLevel: "Your favorite level",
+    followers: 0,
+    followersLabel: "Followers",
     stats: {
       stars: 19817,
       moons: 3300,
@@ -184,6 +215,59 @@
       document.getElementById("updated").textContent = "Live from GDBrowser";
     })
     .catch(() => show(PLAYER.stats));
+
+  // Followers (entered by hand above; GDBrowser doesn't provide this)
+  document.getElementById("fcount").textContent = fmt(PLAYER.followers);
+  document.getElementById("flabel").textContent = PLAYER.followersLabel;
+
+  // Player search
+  const FIELDS = [
+    ["stars", "Stars"], ["moons", "Moons"], ["diamonds", "Diamonds"],
+    ["coins", "Secret coins"], ["userCoins", "User coins"],
+    ["demons", "Demons"], ["cp", "Creator points"]
+  ];
+  const result = document.getElementById("result");
+
+  document.getElementById("lookup").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("q").value.trim();
+    if (!name) return;
+    result.textContent = "Searching…";
+    fetch("https://gdbrowser.com/api/profile/" + encodeURIComponent(name))
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        result.textContent = "";
+        if (!d || d.stars === undefined) {
+          result.textContent = "No player named “" + name + "” found.";
+          return;
+        }
+        const card = document.createElement("div");
+        card.className = "found";
+        const h = document.createElement("h3");
+        h.textContent = d.username || name;
+        card.appendChild(h);
+        if (d.rank > 0) {
+          const p = document.createElement("p");
+          p.className = "rank";
+          p.textContent = "Global rank #" + fmt(d.rank);
+          card.appendChild(p);
+        }
+        const dl = document.createElement("dl");
+        FIELDS.forEach(([key, label]) => {
+          if (d[key] === undefined) return;
+          const box = document.createElement("div");
+          const dt = document.createElement("dt");
+          dt.textContent = label;
+          const dd = document.createElement("dd");
+          dd.textContent = fmt(Number(d[key]) || 0);
+          box.append(dt, dd);
+          dl.appendChild(box);
+        });
+        card.appendChild(dl);
+        result.appendChild(card);
+      })
+      .catch(() => { result.textContent = "Couldn’t reach GDBrowser. Try again in a moment."; });
+  });
 </script>
 </body>
 </html>
