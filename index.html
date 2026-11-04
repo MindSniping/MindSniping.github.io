@@ -109,12 +109,12 @@
     hardestDemon: "Your hardest demon",
     favoriteLevel: "Your favorite level",
     stats: {
-      stars: 0,
-      moons: 0,
-      diamonds: 0,
-      secretCoins: 0,
-      userCoins: 0,
-      demons: 0,
+      stars: 19817,
+      moons: 3300,
+      diamonds: 69395,
+      secretCoins: 164,
+      userCoins: 3662,
+      demons: 393,
       creatorPoints: 0
     }
   };
@@ -171,14 +171,17 @@
     });
   }
 
-  // Stats come from stats.json, which a GitHub Action refreshes every few hours.
-  fetch("stats.json?t=" + Date.now())
+  // Live stats from GDBrowser's community API. If it's down or blocked, the saved numbers above are shown.
+  fetch("https://gdbrowser.com/api/profile/" + encodeURIComponent(PLAYER.name))
     .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(d => {
-      if (!d || d.stars === undefined) throw new Error("Bad stats file");
-      show(d);
-      const when = d.updated ? new Date(d.updated).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "";
-      document.getElementById("updated").textContent = when ? "Stats updated " + when : "";
+      if (!d || d.stars === undefined) throw new Error("Player not found");
+      show({
+        stars: d.stars, moons: d.moons, diamonds: d.diamonds,
+        secretCoins: d.coins, userCoins: d.userCoins,
+        demons: d.demons, creatorPoints: d.cp
+      });
+      document.getElementById("updated").textContent = "Live from GDBrowser";
     })
     .catch(() => show(PLAYER.stats));
 </script>
