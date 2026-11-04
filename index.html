@@ -4,10 +4,34 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MindSniping</title>
+    <script>
+      document.documentElement.classList.add("js");
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
+    <noscript
+      ><style>
+        h1,
+        .icons {
+          animation: none;
+        }
+      </style></noscript
+    >
   </head>
   <body>
-    <h1>MindSniping</h1>
+    <h1 aria-label="MindSniping">
+      <span aria-hidden="true">M</span><span aria-hidden="true">i</span
+      ><span aria-hidden="true">n</span><span aria-hidden="true">d</span
+      ><span aria-hidden="true">S</span><span aria-hidden="true">n</span
+      ><span aria-hidden="true">i</span><span aria-hidden="true">p</span
+      ><span aria-hidden="true">i</span><span aria-hidden="true">n</span
+      ><span aria-hidden="true">g</span>
+    </h1>
 
     <div class="icons">
       <a
@@ -26,6 +50,14 @@
         aria-label="MindSniping on YouTube"
         ><span class="tooltip" role="tooltip">@mind.sniping</span></a
       >
+      <a
+        class="icon-element twitch"
+        href="https://www.twitch.tv/themindsniping"
+        target="_blank"
+        rel="noopener"
+        aria-label="MindSniping on Twitch"
+        ><span class="tooltip" role="tooltip">themindsniping</span></a
+      >
       <button
         type="button"
         class="icon-element discord"
@@ -35,6 +67,14 @@
           >@mindsniping<br />Discord server coming soon</span
         >
       </button>
+      <a
+        class="icon-element steam"
+        href="https://steamcommunity.com/id/MindSniping/"
+        target="_blank"
+        rel="noopener"
+        aria-label="MindSniping on Steam"
+        ><span class="tooltip" role="tooltip">MindSniping</span></a
+      >
       <a
         class="icon-element gdbrowser"
         href="https://gdbrowser.com/u/Mindsniping"
@@ -46,6 +86,34 @@
     </div>
 
     <script>
+      // Start the intro once the page AND the Nunito font have loaded, so nothing jumps mid-animation
+      function startIntro() {
+        requestAnimationFrame(function () {
+          document.body.classList.add("loaded");
+        });
+      }
+      var fontsReady =
+        document.fonts && document.fonts.ready
+          ? document.fonts.ready
+          : Promise.resolve();
+      window.addEventListener("load", function () {
+        fontsReady.then(startIntro);
+      });
+      setTimeout(startIntro, 3000); // safety net if something is slow
+
+      // Hover effects (icon bounce, letter jumps) switch on only once the intro has finished
+      function introDone() {
+        document.documentElement.classList.add("intro-done");
+      }
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        introDone();
+      } else {
+        document
+          .querySelector(".icons")
+          .addEventListener("animationend", introDone, { once: true });
+        setTimeout(introDone, 8000); // safety net
+      }
+
       // Tap pop-ups only on touch devices; desktop uses hover only
       if (window.matchMedia("(hover: none)").matches) {
         document.querySelectorAll(".icon-element").forEach(function (icon) {
@@ -59,6 +127,45 @@
           });
         });
       }
+
+      // Touch devices: hold a finger on the title and slide across to make letters jump
+      (function () {
+        var title = document.querySelector("h1");
+        var letters = title.querySelectorAll("span");
+        var current = null;
+
+        function letterAt(x, y) {
+          var box = title.getBoundingClientRect();
+          if (y < box.top - 24 || y > box.bottom + 24) return null;
+          for (var i = 0; i < letters.length; i++) {
+            var b = letters[i].getBoundingClientRect();
+            if (x >= b.left && x < b.right) return letters[i];
+          }
+          return null;
+        }
+
+        function lift(letter) {
+          if (letter === current) return;
+          if (current) current.classList.remove("lift");
+          current = letter;
+          if (letter) letter.classList.add("lift");
+        }
+
+        function touchMove(e) {
+          if (e.pointerType === "mouse") return; // mouse uses normal hover
+          if (!document.documentElement.classList.contains("intro-done"))
+            return;
+          lift(letterAt(e.clientX, e.clientY));
+        }
+
+        title.addEventListener("pointerdown", touchMove);
+        title.addEventListener("pointermove", touchMove);
+        ["pointerup", "pointercancel", "pointerleave"].forEach(function (name) {
+          title.addEventListener(name, function () {
+            lift(null);
+          });
+        });
+      })();
     </script>
   </body>
 </html>

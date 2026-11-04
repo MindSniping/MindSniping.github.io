@@ -1,3 +1,101 @@
+/* Intro animation on page load: adjust these */
+:root {
+  --fade-duration: 1.25s; /* how long the animation takes */
+  --fade-delay: 0s; /* wait before it starts */
+  --fade-easing: ease-in-out; /* fade: slow start, faster middle, soft finish */
+  --move-easing: cubic-bezier(
+    0.45,
+    0,
+    0.55,
+    1
+  ); /* movement: slow start, speeds up, short soft finish (no long slow crawl) */
+  --slide-distance: 25px; /* how far the title and icons travel (0px = fade only) */
+}
+
+/* Hover bounce: adjust these */
+:root {
+  --hover-scale: 1.15; /* how big an icon gets on hover */
+  --bounce-duration: 0.5s; /* how long the bounce takes */
+  --bounce-easing: cubic-bezier(
+    0.34,
+    1.56,
+    0.64,
+    1
+  ); /* overshoots, so it bounces both in and out */
+}
+
+/* Hover letters: adjust these */
+:root {
+  --letter-lift: 14px; /* how high a letter jumps when hovered */
+  --letter-rise: 0.15s; /* how fast it goes up */
+  --letter-fall: 0.6s; /* how long it takes to drop back down */
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Fully invisible (0% opacity) until the intro begins */
+html.js h1,
+html.js .icons {
+  opacity: 0;
+}
+
+/* Title: comes down from the top */
+@keyframes slide-from-top {
+  from {
+    transform: translateY(calc(var(--slide-distance) * -1));
+  }
+}
+
+/* Icons: come up from the bottom */
+@keyframes slide-from-bottom {
+  from {
+    transform: translateY(var(--slide-distance));
+  }
+}
+
+h1,
+.icons {
+  animation-play-state: paused; /* waits until the page and font have loaded (see script) */
+}
+
+body.loaded h1,
+body.loaded .icons {
+  animation-play-state: running;
+}
+
+h1 {
+  animation:
+    fade-in var(--fade-duration) var(--fade-easing) var(--fade-delay) both,
+    slide-from-top var(--fade-duration) var(--move-easing) var(--fade-delay)
+      backwards;
+}
+
+.icons {
+  animation:
+    fade-in var(--fade-duration) var(--fade-easing) var(--fade-delay) both,
+    slide-from-bottom var(--fade-duration) var(--move-easing) var(--fade-delay)
+      backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  h1,
+  .icons {
+    animation: none;
+  }
+
+  html.js h1,
+  html.js .icons {
+    opacity: 1;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -18,11 +116,17 @@ body {
   background: #121212;
   color: #fff;
   text-align: center;
-  font-family: sans-serif;
+  font-family: "Nunito", sans-serif;
 }
 
 h1 {
-  margin: 0 0 clamp(16px, 4vw, 28px);
+  cursor: default; /* normal arrow pointer over the title */
+  user-select: none; /* title text can't be selected */
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none; /* lets a finger slide across the letters */
+  margin: 0 0 clamp(16px, 4vw, 32px);
   font-size: clamp(2.5rem, 11vw, 6rem);
   line-height: 1.1;
 }
@@ -30,32 +134,71 @@ h1 {
 .icons {
   display: flex;
   justify-content: center;
-  gap: clamp(16px, 5vw, 48px);
+  gap: clamp(10px, 3.5vw, 48px);
+  flex-wrap: wrap;
 }
 
 .icon-element {
   position: relative;
   display: inline-block;
-  width: clamp(56px, 14vw, 76px);
-  height: clamp(56px, 14vw, 76px);
+  width: min(76px, 11vw);
+  height: min(76px, 11vw);
+}
+
+.icon-element::after {
+  content: "";
+  position: absolute;
+  /* The icon is drawn at its biggest (hover) size and shrunk at rest, so it is
+       always rendered sharp and never re-drawn at in-between sizes while bouncing. */
+  inset: calc((1 - var(--hover-scale)) * 50%);
+  transform: scale(calc(1 / var(--hover-scale)));
+  will-change: transform;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  transition: transform var(--bounce-duration) var(--bounce-easing);
 }
 
-.tiktok {
+/* Bounce in on hover, bounce back out when the mouse leaves */
+@media (hover: hover) {
+  html:not(.js) .icon-element:hover::after,
+  html.intro-done .icon-element:hover::after {
+    transform: scale(1);
+  }
+}
+
+html:not(.js) .icon-element:focus-visible::after,
+html.intro-done .icon-element:focus-visible::after {
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-element::after {
+    transition: none;
+  }
+}
+
+.tiktok::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Cpath d='M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z'/%3E%3C/svg%3E");
 }
 
-.youtube {
+.youtube::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Cpath d='M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z'/%3E%3C/svg%3E");
 }
 
+.twitch::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Cpath d='M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z'/%3E%3C/svg%3E");
+}
+
 .discord {
+  font: inherit; /* so its pop-up uses Nunito too */
   padding: 0;
   border: none;
   background-color: transparent;
   cursor: pointer;
+}
+
+.discord::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Cpath d='M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z'/%3E%3C/svg%3E");
 }
 
@@ -69,7 +212,7 @@ h1 {
   border-radius: 8px;
   background: #222;
   color: #fff;
-  font-family: sans-serif;
+  font-family: inherit;
   font-size: clamp(0.85rem, 3.5vw, 1.1rem);
   line-height: 1.4;
   white-space: nowrap;
@@ -95,7 +238,38 @@ h1 {
   }
 }
 
+.steam::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Cpath d='M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z'/%3E%3C/svg%3E");
+}
+
 /* Geometry Dash cube: frame, two eyes, mouth */
-.gdbrowser {
+.gdbrowser::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff' fill-rule='evenodd'%3E%3Cpath d='M1 1h22v22H1zM2.8 2.8v18.4h18.4V2.8z'/%3E%3Cpath d='M6 5h4.8v4.8H6zM7.3 6.3v2.2h2.2V6.3zM13.2 5h4.8v4.8h-4.8zM14.5 6.3v2.2h2.2V6.3zM4.6 11.7h14.8v4.5H4.6zM6 13.1v1.7h12v-1.7z'/%3E%3C/svg%3E");
+}
+
+/* Each letter of the title jumps up on hover, then drops back down */
+h1 span {
+  display: inline-block;
+  /* dropping back down: speeds up like gravity, tiny bounce on landing */
+  transition: transform var(--letter-fall) cubic-bezier(0.55, 0.05, 0.65, 1.45);
+}
+
+@media (hover: hover) {
+  html:not(.js) h1 span:hover,
+  html.intro-done h1 span:hover {
+    transform: translateY(calc(var(--letter-lift) * -1));
+    transition: transform var(--letter-rise) ease-out; /* quick lift */
+  }
+}
+
+/* Touch: letters under a finger jump up (set by the script), same as hover */
+html.intro-done h1 span.lift {
+  transform: translateY(calc(var(--letter-lift) * -1));
+  transition: transform var(--letter-rise) ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  h1 span {
+    transition: none;
+  }
 }
